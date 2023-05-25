@@ -57,18 +57,24 @@ namespace Example.WebApp.Controllers
                 return Request.CreateResponse(HttpStatusCode.BadRequest,"Invalid input");
             }
             Phone existingPhone = phones.FirstOrDefault(p => p.Id == id);
-            existingPhone.Model = phone.Model;
-            existingPhone.Price = phone.Price;
-            return Request.CreateResponse(HttpStatusCode.Accepted,"Phone updated");
+            if (existingPhone != null)
+            {
+                existingPhone.Model = phone.Model;
+                existingPhone.Price = phone.Price;
+                return Request.CreateResponse(HttpStatusCode.Accepted, "Phone updated");
+            }
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.NotModified, "A phone does not exist.");
+            }
         }
 
         // DELETE api/phone/5
         public HttpResponseMessage Delete(int id)
         {
-            if (id == null)
-                return Request.CreateResponse(HttpStatusCode.NoContent, "A phone does not exist.");
             Phone phone = phones.FirstOrDefault(p => p.Id == id);
-
+            if (phone == null)
+                return Request.CreateResponse(HttpStatusCode.NoContent, "A phone does not exist.");
             phones.Remove(phone);
             return Request.CreateResponse(HttpStatusCode.Gone,"Succesfully deleted.");
         }
