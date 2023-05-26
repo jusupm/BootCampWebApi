@@ -21,13 +21,13 @@ namespace Example.WebApp.Controllers
         // GET api/phone/5
         public HttpResponseMessage Get(int id)
         {
-            var phone = phones.FirstOrDefault(p => p.Id == id);
-            if (phones.Count == 0)
+            if (phones!=null)
             {
-                return Request.CreateResponse(System.Net.HttpStatusCode.NotFound,phone);
+                Phone phone = phones.FirstOrDefault(p => p.Id == id);
+                if(phone!=null)
+                    return Request.CreateResponse(System.Net.HttpStatusCode.OK, phone);
             }
-
-            return Request.CreateResponse(System.Net.HttpStatusCode.OK,phone);
+            return Request.CreateResponse(System.Net.HttpStatusCode.NotFound,"Cannot get a phone by that id.");
         }
 
         // POST api/phone
@@ -37,14 +37,14 @@ namespace Example.WebApp.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest,"Invalid input");
             }
-            if (phones.Count != 0)
-            {
-                phone.Id = phones.Max(p => p.Id) + 1;
-            }
-            else
-            {
-                phone.Id = 1;
-            }
+                if (phones.Count != 0)
+                {
+                    phone.Id = phones.Max(p => p.Id) + 1;
+                }
+                else
+                {
+                    phone.Id = default;
+                }
             phones.Add(phone);
             return Request.CreateResponse(HttpStatusCode.Created,"A new phone added");
         }
