@@ -49,6 +49,17 @@ namespace Example.WebApp.Controllers
             return Request.CreateResponse(HttpStatusCode.Created,"A new phone added");
         }
 
+        public HttpResponseMessage Post(int id, string model, decimal price)
+        {
+            if (phones.Any(p => p.Id == id))
+            {
+                return Request.CreateResponse(HttpStatusCode.Conflict, "A phone already exists with that id.");
+            }
+            Phone phone = new Phone { Id = id, Model = model, Price = price };
+            phones.Add(phone);
+            return Request.CreateResponse(HttpStatusCode.Created, "A new phone added");
+        }
+
         // PUT api/phone/5
         public HttpResponseMessage Put(int id, [FromBody] Phone phone)
         {
