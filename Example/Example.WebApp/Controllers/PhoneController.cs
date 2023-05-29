@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 
+
 namespace Example.WebApp.Controllers
 {
     public class PhoneController : ApiController
@@ -25,9 +26,9 @@ namespace Example.WebApp.Controllers
             {
                 Phone phone = phones.FirstOrDefault(p => p.Id == id);
                 if(phone!=null)
-                    return Request.CreateResponse(System.Net.HttpStatusCode.OK, phone);
+                    return Request.CreateResponse(HttpStatusCode.OK, phone);
             }
-            return Request.CreateResponse(System.Net.HttpStatusCode.NotFound,"Cannot get a phone by that id.");
+            return Request.CreateResponse(HttpStatusCode.NotFound,"Cannot get a phone by that id.");
         }
 
         // POST api/phone
