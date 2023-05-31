@@ -11,6 +11,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Xml.Linq;
+using System.Text;
 
 
 namespace Example.WebApp.Controllers
@@ -148,23 +149,29 @@ namespace Example.WebApp.Controllers
                 stringBuilder.Append("UPDATE PhoneStore set ");
                 if (phoneStore.Name != null)
                 {
-                    stringBuilder.Append($"Name=@name, ");
+                    stringBuilder.Append($"Name=@name,");
                     command.Parameters.AddWithValue("@name", phoneStore.Name);
                 }
                 if (phoneStore.Address != null)
                 {
-                    stringBuilder.Append($"Address=@address ");
-                    command.Parameters.AddWithValue("address", phoneStore.Address);
+                    stringBuilder.Append($"Address=@address,");
+                    command.Parameters.AddWithValue("@address", phoneStore.Address);
                 }
-                stringBuilder.Append($"WHERE Id=@id;");
-                command.Parameters.AddWithValue("id", phoneStore.Id);
+
+                if (stringBuilder.Length > 0)
+                {
+                    stringBuilder.Remove(stringBuilder.Length-1,1);
+                }
+
+                stringBuilder.Append($" WHERE Id=@id;");
+                command.Parameters.AddWithValue("@id", id);
                 connection.Open();
                 command.Connection = connection;
                 command.CommandText = stringBuilder.ToString();
 
                 command.ExecuteNonQuery();
                 connection.Close();
-                return Request.CreateResponse(HttpStatusCode.Accepted, "Store updated");
+                return Request.CreateResponse(HttpStatusCode.Accepted,"Store updated");
             }
             catch (Exception ex)
             {
@@ -183,8 +190,8 @@ namespace Example.WebApp.Controllers
                 connection.Open();
                 NpgsqlCommand command = new NpgsqlCommand();
                 command.Connection = connection;
-                command.CommandText = ($"DELETE FROM PhoneStore WHERE Id=@id';");
-                command.Parameters.AddWithValue("id", id);
+                command.CommandText = ($"DELETE FROM PhoneStore WHERE Id=@id;");
+                command.Parameters.AddWithValue("@id", id);
                 command.ExecuteNonQuery();
                 connection.Close();
                 return Request.CreateResponse(HttpStatusCode.Gone, "Succesfully deleted.");
