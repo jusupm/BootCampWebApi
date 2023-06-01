@@ -1,73 +1,73 @@
-﻿using Npgsql;
+﻿using Example.Service;
+using Example.WebApp.Models;
+using Example.Model;
+using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Web;
 using System.Web.Http;
-using System.Web.Mvc;
-using System.Xml.Linq;
-using System.Text;
-
+using Newtonsoft.Json;
 
 namespace Example.WebApp.Controllers
 {
     public class PhoneStoreController : ApiController
     {
-        
-        public List<PhoneStore> Get()
+        PhoneStoreService service= new PhoneStoreService();
+        public PhoneStoreRest PhoneStoreToRest(PhoneStore store)
         {
-            List<PhoneStore> phoneStores = new List<PhoneStore>();
-            NpgsqlConnection connection = new NpgsqlConnection(connectionString: "Server=localhost;Port=5432;User Id=postgres;Password=1234;Database=PhoneStore;");
-            connection.Open();
-            string query = "SELECT * FROM PhoneStore";
-            using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+            PhoneStoreRest rest= new PhoneStoreRest();
+            rest.Id = store.Id;
+            rest.Name = store.Name;
+            rest.Address = store.Address;
+            return rest;
+        }
+
+        public PhoneStore RestToPhoneStore(PhoneStoreRest rest)
+        {
+            PhoneStore store = new PhoneStore();
+            store.Id= rest.Id;
+            store.Name = rest.Name;
+            store.Address = rest.Address;
+            return store;
+        }
+
+        public PhoneStore RestToPhoneStore(string name, string address)
+        {
+            PhoneStore store = new PhoneStore();
+            store.Name = name;
+            store.Address = address;
+            return store;
+        }
+
+        public HttpResponseMessage Get()   
+        {
+            try
             {
-                NpgsqlDataReader reader = command.ExecuteReader();
-                if (reader.HasRows)
+                List<PhoneStore> phoneStores = new List<PhoneStore>();
+                List<PhoneStoreRest> rests= new List<PhoneStoreRest>();
+                phoneStores = service.Get();
+                foreach(PhoneStore phoneStore in phoneStores)
                 {
-                    while (reader.Read())
-                    {
-                        PhoneStore phoneStore = new PhoneStore();
-                        phoneStore.Id = (Guid)reader["Id"];
-                        phoneStore.Name = (string)reader["Name"];
-                        phoneStore.Address = (string)reader["Address"];
-                        phoneStores.Add(phoneStore);
-                    }
+                    rests.Add(PhoneStoreToRest(phoneStore));
                 }
+                return Request.CreateErrorResponse(HttpStatusCode.OK,rests.ToString());
             }
-            connection.Close();
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, ex);
+            }
             
-            
-            return phoneStores;
         }
 
         // GET api/phone/5
         public HttpResponseMessage Get(Guid id)
         {
-            NpgsqlConnection connection = new NpgsqlConnection(connectionString: "Server=localhost;Port=5432;User Id=postgres;Password=1234;Database=PhoneStore;");
             try
             {
-                connection.Open();
-                string query = "SELECT * FROM PhoneStore WHERE id=@Id";
-                PhoneStore phoneStore = new PhoneStore();
-                using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Id", id);
-                    NpgsqlDataReader reader = command.ExecuteReader();
-                    if (reader.HasRows) { reader.Read(); }
-                    else { return Request.CreateResponse(HttpStatusCode.NotFound, "Store does not exist."); }
-                    phoneStore.Id = (Guid)reader["Id"];
-                    phoneStore.Name = (string)reader["Name"];
-                    phoneStore.Address = (string)reader["Address"];
-                    
-                }
-                connection.Close();
-                return Request.CreateResponse(HttpStatusCode.OK, phoneStore);
+                PhoneStoreRest rest = PhoneStoreToRest(service.Get(id));
+                return Request.CreateResponse(HttpStatusCode.OK, rest);
             }
             catch (Exception ex)
             {
@@ -77,32 +77,25 @@ namespace Example.WebApp.Controllers
         }
 
         // POST api/phone
-        public HttpResponseMessage Post([FromBody] PhoneStore phoneStore)
+        public HttpResponseMessage Post([FromBody] PhoneStoreRest rest)
         {
-            NpgsqlConnection connection = new NpgsqlConnection(connectionString: "Server=localhost;Port=5432;User Id=postgres;Password=1234;Database=PhoneStore;");
-
             if (!ModelState.IsValid)
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid input");
             }
             try
             {
-                Guid id = Guid.NewGuid();
-                connection.Open();
-
-                NpgsqlCommand command = new NpgsqlCommand();
-                command.Connection = connection;
-                command.CommandText = ($"INSERT INTO PhoneStore (Id, Name, Address) VALUES (@Id, @Name, @Address)");
-                command.Parameters.AddWithValue("@Id", id);
-                command.Parameters.AddWithValue("@Name", phoneStore.Name);
-                command.Parameters.AddWithValue("@Address", phoneStore.Address);
-                command.ExecuteNonQuery();
-                connection.Close();
-                return Request.CreateResponse(HttpStatusCode.Created, phoneStore);
+                if (service.Post(RestToPhoneStore(rest)))
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.OK, "Added a phone");
+                }
+                else
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid input");
+                }
             }
             catch (Exception ex)
             {
-
                 return Request.CreateResponse(HttpStatusCode.BadRequest,ex.Message);
             }           
             
@@ -110,21 +103,17 @@ namespace Example.WebApp.Controllers
 
         public HttpResponseMessage Post(string name, string address)
         {
-            NpgsqlConnection connection = new NpgsqlConnection(connectionString: "Server=localhost;Port=5432;User Id=postgres;Password=1234;Database=PhoneStore;");
-
             Guid id = Guid.NewGuid();
             try
             {
-                connection.Open();
-                NpgsqlCommand command = new NpgsqlCommand();
-                command.Connection = connection;
-                command.CommandText = ($"INSERT INTO PhoneStore (Id, Name, Address) VALUES (@Id, @Name, @Address)");
-                command.Parameters.AddWithValue("@Id", id);
-                command.Parameters.AddWithValue("@Name", name);
-                command.Parameters.AddWithValue("@Address", address);
-                command.ExecuteNonQuery();
-                connection.Close();
-                return Request.CreateResponse(HttpStatusCode.Created, "A new phone added");
+                if (service.Post(RestToPhoneStore(name, address)))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Created, "A new phone added");
+                }
+                else
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid input");
+                }
             }
             catch (Exception ex)
             {
@@ -134,44 +123,22 @@ namespace Example.WebApp.Controllers
         }
 
         // PUT api/phone/5
-        public HttpResponseMessage Put(Guid id, [FromBody] PhoneStore phoneStore)
-        {
-            NpgsqlConnection connection = new NpgsqlConnection(connectionString: "Server=localhost;Port=5432;User Id=postgres;Password=1234;Database=PhoneStore;");
-
+        public HttpResponseMessage Put(Guid id, [FromBody] PhoneStoreRest phoneStore)
+        {            
             if (!ModelState.IsValid)
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid input");
             }
             try
             {
-                StringBuilder stringBuilder = new StringBuilder();
-                NpgsqlCommand command = new NpgsqlCommand();
-                stringBuilder.Append("UPDATE PhoneStore set ");
-                if (phoneStore.Name != null)
+                if (service.Put(id, RestToPhoneStore(phoneStore)))
                 {
-                    stringBuilder.Append($"Name=@name,");
-                    command.Parameters.AddWithValue("@name", phoneStore.Name);
+                    return Request.CreateResponse(HttpStatusCode.OK, "Store updated");
                 }
-                if (phoneStore.Address != null)
+                else
                 {
-                    stringBuilder.Append($"Address=@address,");
-                    command.Parameters.AddWithValue("@address", phoneStore.Address);
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid request");
                 }
-
-                if (stringBuilder.Length > 0)
-                {
-                    stringBuilder.Remove(stringBuilder.Length-1,1);
-                }
-
-                stringBuilder.Append($" WHERE Id=@id;");
-                command.Parameters.AddWithValue("@id", id);
-                connection.Open();
-                command.Connection = connection;
-                command.CommandText = stringBuilder.ToString();
-
-                command.ExecuteNonQuery();
-                connection.Close();
-                return Request.CreateResponse(HttpStatusCode.Accepted,"Store updated");
             }
             catch (Exception ex)
             {
@@ -184,23 +151,22 @@ namespace Example.WebApp.Controllers
         // DELETE api/phone/5
         public HttpResponseMessage Delete(Guid id)
         {
-            NpgsqlConnection connection = new NpgsqlConnection(connectionString: "Server=localhost;Port=5432;User Id=postgres;Password=1234;Database=PhoneStore;");
             try
             {
-                connection.Open();
-                NpgsqlCommand command = new NpgsqlCommand();
-                command.Connection = connection;
-                command.CommandText = ($"DELETE FROM PhoneStore WHERE Id=@id;");
-                command.Parameters.AddWithValue("@id", id);
-                command.ExecuteNonQuery();
-                connection.Close();
-                return Request.CreateResponse(HttpStatusCode.Gone, "Succesfully deleted.");
+                if (service.Delete(id))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Gone, "Succesfully deleted.");
+                }
+                else
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid request.");
+                }
             }
             catch (Exception ex)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest,ex.Message);
+                return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
             }
-            
+
         }
     }
 }
