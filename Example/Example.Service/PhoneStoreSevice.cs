@@ -12,34 +12,34 @@ namespace Example.Service
     public class PhoneStoreService : IPhoneStoreService
     {
         PhoneStoreRepository repository = new PhoneStoreRepository();
-        public bool Delete(Guid id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
-            return repository.Delete(id);
+            return await repository.DeleteAsync(id);
+        }
+        
+        public async Task<List<PhoneStore>> GetAsync()
+        {
+            return await repository.GetAsync();
         }
 
-        public List<PhoneStore> Get()
+        public async Task<PhoneStore> GetAsync(Guid id)
         {
-            return repository.Get();
+            return await repository.GetAsync(id);
         }
 
-        public PhoneStore Get(Guid id)
+        public async Task<bool> PostAsync(PhoneStore store)
         {
-            return repository.Get(id);
+            return await repository.PostAsync(store);
         }
 
-        public bool Post(PhoneStore store)
+        public async Task<bool> PostAsync(string name, string address)
         {
-            return repository.Post(store);
+            return await repository.PostAsync(name,address);
         }
 
-        public bool Post(string name, string address)
+        public async Task<bool> PutAsync(Guid id, PhoneStore store)
         {
-            return repository.Post(name,address);
-        }
-
-        public bool Put(Guid id, PhoneStore store)
-        {
-            return repository.Put(id,store);
+            return await repository.PutAsync(id,store);
         }
     }
 }

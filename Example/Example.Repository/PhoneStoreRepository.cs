@@ -15,20 +15,20 @@ namespace Example.Repository
     public class PhoneStoreRepository : IPhoneStoreRepository
     {
         private readonly string connectionString = "Server=localhost;Port=5432;User Id=postgres;Password=1234;Database=PhoneStore;";
-        public bool Delete(Guid id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             try
             {
                 NpgsqlConnection connection = new NpgsqlConnection(connectionString);
                 using (connection)
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
                     NpgsqlCommand command = new NpgsqlCommand();
                     command.Connection = connection;
                     command.CommandText = ($"DELETE FROM PhoneStore WHERE Id=@id;");
                     command.Parameters.AddWithValue("@id", id);
-                    command.ExecuteNonQuery();
-                    connection.Close();
+                    await command.ExecuteNonQueryAsync();
+                    await connection.CloseAsync();
                     return true;
                 }
             }
@@ -38,7 +38,7 @@ namespace Example.Repository
             }
         }
 
-        public List<PhoneStore> Get()
+        public async Task<List<PhoneStore>> GetAsync()
         {
             List<PhoneStore> phoneStores = new List<PhoneStore>();
             try
@@ -46,14 +46,14 @@ namespace Example.Repository
                 NpgsqlConnection connection = new NpgsqlConnection(connectionString);
                 using (connection)
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
                     string query = "SELECT * FROM PhoneStore";
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
-                            while (reader.Read())
+                            while (await reader.ReadAsync())
                             {
                                 PhoneStore phoneStore = new PhoneStore();
                                 phoneStore.Id = (Guid)reader["Id"];
@@ -63,7 +63,7 @@ namespace Example.Repository
                             }
                         }
                     }
-                    connection.Close();
+                    await connection.CloseAsync();
 
 
                     return phoneStores;
@@ -75,7 +75,7 @@ namespace Example.Repository
             }
         }
 
-        public PhoneStore Get(Guid id)
+        public async Task<PhoneStore> GetAsync(Guid id)
         {
             PhoneStore phoneStore = new PhoneStore();
             try
@@ -83,15 +83,15 @@ namespace Example.Repository
                 NpgsqlConnection connection = new NpgsqlConnection(connectionString);
                 using (connection)
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
                     string query = "SELECT * FROM PhoneStore WHERE id=@Id";
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@Id", id);
-                        NpgsqlDataReader reader = command.ExecuteReader();
+                        NpgsqlDataReader reader = await command.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
-                            reader.Read();
+                            await reader.ReadAsync();
                         }
                         else
                         {
@@ -102,7 +102,7 @@ namespace Example.Repository
                         phoneStore.Address = (string)reader["Address"];
 
                     }
-                    connection.Close();
+                    await connection.CloseAsync();
                     return phoneStore;
                 }
             }
@@ -113,13 +113,13 @@ namespace Example.Repository
 
         }
 
-        public bool Post(PhoneStore phoneStore)
+        public async Task<bool> PostAsync(PhoneStore phoneStore)
         {
             NpgsqlConnection connection = new NpgsqlConnection(connectionString);
             try
             {
                 Guid id = Guid.NewGuid();
-                connection.Open();
+                await connection.OpenAsync();
                 using (connection)
                 {
                     NpgsqlCommand command = new NpgsqlCommand();
@@ -128,8 +128,8 @@ namespace Example.Repository
                     command.Parameters.AddWithValue("@Id", id);
                     command.Parameters.AddWithValue("@Name", phoneStore.Name);
                     command.Parameters.AddWithValue("@Address", phoneStore.Address);
-                    command.ExecuteNonQuery();
-                    connection.Close();
+                    await command.ExecuteNonQueryAsync();
+                    await connection.CloseAsync();
                     return true;
                 }
             }
@@ -139,7 +139,7 @@ namespace Example.Repository
             }
         }
 
-        public bool Post(string name, string address)
+        public async Task<bool> PostAsync(string name, string address)
         {
             Guid id = Guid.NewGuid();
             try
@@ -147,15 +147,15 @@ namespace Example.Repository
                 NpgsqlConnection connection = new NpgsqlConnection(connectionString);
                 using (connection)
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
                     NpgsqlCommand command = new NpgsqlCommand();
                     command.Connection = connection;
                     command.CommandText = ($"INSERT INTO PhoneStore (Id, Name, Address) VALUES (@Id, @Name, @Address)");
                     command.Parameters.AddWithValue("@Id", id);
                     command.Parameters.AddWithValue("@Name", name);
                     command.Parameters.AddWithValue("@Address", address);
-                    command.ExecuteNonQuery();
-                    connection.Close();
+                    await command.ExecuteNonQueryAsync();
+                    await connection.CloseAsync();
                     return true;
                 }
             }
@@ -165,13 +165,14 @@ namespace Example.Repository
             }
         }
 
-        public bool Put(Guid id, PhoneStore phoneStore)
+        public async Task<bool> PutAsync(Guid id, PhoneStore phoneStore)
         {
             try
             {
                 NpgsqlConnection connection = new NpgsqlConnection(connectionString);
                 using (connection)
                 {
+                    await connection.OpenAsync();
                     StringBuilder stringBuilder = new StringBuilder();
                     NpgsqlCommand command = new NpgsqlCommand();
                     stringBuilder.Append("UPDATE PhoneStore set ");
@@ -193,12 +194,11 @@ namespace Example.Repository
 
                     stringBuilder.Append($" WHERE Id=@id;");
                     command.Parameters.AddWithValue("@id", id);
-                    connection.Open();
                     command.Connection = connection;
                     command.CommandText = stringBuilder.ToString();
 
-                    command.ExecuteNonQuery();
-                    connection.Close();
+                    await command.ExecuteNonQueryAsync();
+                    await connection.CloseAsync();
                     return true;
                 }
             }

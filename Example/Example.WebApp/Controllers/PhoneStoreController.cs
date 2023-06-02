@@ -9,13 +9,14 @@ using System.Net.Http;
 using System.Text;
 using System.Web.Http;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Example.WebApp.Controllers
 {
     public class PhoneStoreController : ApiController
     {
         PhoneStoreService service= new PhoneStoreService();
-        public PhoneStoreRest PhoneStoreToRest(PhoneStore store)
+        private PhoneStoreRest PhoneStoreToRest(PhoneStore store)
         {
             PhoneStoreRest rest= new PhoneStoreRest();
             rest.Id = store.Id;
@@ -24,7 +25,7 @@ namespace Example.WebApp.Controllers
             return rest;
         }
 
-        public PhoneStore RestToPhoneStore(PhoneStoreRest rest)
+        private PhoneStore RestToPhoneStore(PhoneStoreRest rest)
         {
             PhoneStore store = new PhoneStore();
             store.Id= rest.Id;
@@ -33,7 +34,7 @@ namespace Example.WebApp.Controllers
             return store;
         }
 
-        public PhoneStore RestToPhoneStore(string name, string address)
+        private PhoneStore RestToPhoneStore(string name, string address)
         {
             PhoneStore store = new PhoneStore();
             store.Name = name;
@@ -41,18 +42,18 @@ namespace Example.WebApp.Controllers
             return store;
         }
 
-        public HttpResponseMessage Get()   
+        public async Task<HttpResponseMessage> GetAsync()   
         {
             try
             {
                 List<PhoneStore> phoneStores = new List<PhoneStore>();
                 List<PhoneStoreRest> rests= new List<PhoneStoreRest>();
-                phoneStores = service.Get();
+                phoneStores = await service.GetAsync();
                 foreach(PhoneStore phoneStore in phoneStores)
                 {
                     rests.Add(PhoneStoreToRest(phoneStore));
                 }
-                return Request.CreateErrorResponse(HttpStatusCode.OK,rests.ToString());
+                return Request.CreateResponse(HttpStatusCode.OK,rests);
             }
             catch (Exception ex)
             {
@@ -62,11 +63,11 @@ namespace Example.WebApp.Controllers
         }
 
         // GET api/phone/5
-        public HttpResponseMessage Get(Guid id)
+        public async Task<HttpResponseMessage> GetAsync(Guid id)
         {
             try
             {
-                PhoneStoreRest rest = PhoneStoreToRest(service.Get(id));
+                PhoneStoreRest rest = PhoneStoreToRest(await service.GetAsync(id));
                 return Request.CreateResponse(HttpStatusCode.OK, rest);
             }
             catch (Exception ex)
@@ -77,7 +78,7 @@ namespace Example.WebApp.Controllers
         }
 
         // POST api/phone
-        public HttpResponseMessage Post([FromBody] PhoneStoreRest rest)
+        public async Task<HttpResponseMessage> PostAsync([FromBody] PhoneStoreRest rest)
         {
             if (!ModelState.IsValid)
             {
@@ -85,7 +86,7 @@ namespace Example.WebApp.Controllers
             }
             try
             {
-                if (service.Post(RestToPhoneStore(rest)))
+                if (await service.PostAsync(RestToPhoneStore(rest)))
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.OK, "Added a phone");
                 }
@@ -101,12 +102,12 @@ namespace Example.WebApp.Controllers
             
         }
 
-        public HttpResponseMessage Post(string name, string address)
+        public async Task<HttpResponseMessage> PostAsync(string name, string address)
         {
             Guid id = Guid.NewGuid();
             try
             {
-                if (service.Post(RestToPhoneStore(name, address)))
+                if (await service.PostAsync(RestToPhoneStore(name, address)))
                 {
                     return Request.CreateResponse(HttpStatusCode.Created, "A new phone added");
                 }
@@ -123,7 +124,7 @@ namespace Example.WebApp.Controllers
         }
 
         // PUT api/phone/5
-        public HttpResponseMessage Put(Guid id, [FromBody] PhoneStoreRest phoneStore)
+        public async Task<HttpResponseMessage> PutAsync(Guid id, [FromBody] PhoneStoreRest phoneStore)
         {            
             if (!ModelState.IsValid)
             {
@@ -131,7 +132,7 @@ namespace Example.WebApp.Controllers
             }
             try
             {
-                if (service.Put(id, RestToPhoneStore(phoneStore)))
+                if (await service.PutAsync(id, RestToPhoneStore(phoneStore)))
                 {
                     return Request.CreateResponse(HttpStatusCode.OK, "Store updated");
                 }
@@ -149,11 +150,11 @@ namespace Example.WebApp.Controllers
         }
 
         // DELETE api/phone/5
-        public HttpResponseMessage Delete(Guid id)
+        public async Task<HttpResponseMessage> DeleteAsync(Guid id)
         {
             try
             {
-                if (service.Delete(id))
+                if (await service.DeleteAsync(id))
                 {
                     return Request.CreateResponse(HttpStatusCode.Gone, "Succesfully deleted.");
                 }

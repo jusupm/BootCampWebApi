@@ -9,11 +9,11 @@ namespace Example.Repository.Common
 {
     public interface IPhoneStoreRepository
     {
-        List<PhoneStore> Get();
-        PhoneStore Get(Guid id);
-        bool Post(PhoneStore store);
-        bool Post(string name, string address);
-        bool Put(Guid id, PhoneStore store);
-        bool Delete(Guid id);
+        Task<List<PhoneStore>> GetAsync();
+        Task<PhoneStore> GetAsync(Guid id);
+        Task<bool> PostAsync(PhoneStore store);
+        Task<bool> PostAsync(string name, string address);
+        Task<bool> PutAsync(Guid id, PhoneStore store);
+        Task<bool> DeleteAsync(Guid id);
     }
 }
