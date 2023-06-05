@@ -1,4 +1,5 @@
-﻿using Example.Model;
+﻿using Example.Common;
+using Example.Model;
 using Example.Repository;
 using Example.Service.Common;
 using System;
@@ -17,9 +18,9 @@ namespace Example.Service
             return await repository.DeleteAsync(id);
         }
         
-        public async Task<List<PhoneStore>> GetAsync()
+        public async Task<List<PhoneStore>> GetAsync(Paging paging, Sorting sorting,Filtering filtering)
         {
-            return await repository.GetAsync();
+            return await repository.GetAsync(paging,sorting,filtering);
         }
 
         public async Task<PhoneStore> GetAsync(Guid id)

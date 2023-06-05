@@ -1,4 +1,5 @@
-﻿using Example.Model;
+﻿using Example.Common;
+using Example.Model;
 using Example.Repository.Common;
 using Npgsql;
 using System;
@@ -9,6 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.ModelBinding;
+using System.Web.UI.WebControls;
 
 namespace Example.Repository
 {
@@ -38,7 +40,7 @@ namespace Example.Repository
             }
         }
 
-        public async Task<List<PhoneStore>> GetAsync()
+        public async Task<List<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering)
         {
             List<PhoneStore> phoneStores = new List<PhoneStore>();
             try

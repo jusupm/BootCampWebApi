@@ -10,12 +10,17 @@ using System.Text;
 using System.Web.Http;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using Microsoft.Graph;
+using Example.Common;
+using System.Web.UI.WebControls;
 
 namespace Example.WebApp.Controllers
 {
     public class PhoneStoreController : ApiController
     {
         PhoneStoreService service= new PhoneStoreService();
+        Paging paging = new Paging();
+        Sorting sorting = new Sorting();
         private PhoneStoreRest PhoneStoreToRest(PhoneStore store)
         {
             PhoneStoreRest rest= new PhoneStoreRest();
@@ -42,13 +47,13 @@ namespace Example.WebApp.Controllers
             return store;
         }
 
-        public async Task<HttpResponseMessage> GetAsync()   
+        public async Task<HttpResponseMessage> GetAsync(Paging paging, Sorting sorting, Filtering filtering)   
         {
             try
             {
                 List<PhoneStore> phoneStores = new List<PhoneStore>();
                 List<PhoneStoreRest> rests= new List<PhoneStoreRest>();
-                phoneStores = await service.GetAsync();
+                phoneStores = await service.GetAsync(paging, sorting, filtering);
                 foreach(PhoneStore phoneStore in phoneStores)
                 {
                     rests.Add(PhoneStoreToRest(phoneStore));
