@@ -10,5 +10,11 @@ namespace Example.Common
     {
         public string SortBy { get; set; }
         public string SortOrder { get; set; }
+
+        public Sorting(string sortBy, string sortOrder) 
+        {
+            this.SortBy = sortBy;
+            this.SortOrder = sortOrder;
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace Example.Service.Common
 {
     public interface IPhoneStoreService
     {
-        Task<List<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering);
+        Task<PagedList<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering);
         Task<PhoneStore> GetAsync(Guid id);
         Task<bool> PostAsync(PhoneStore store);
         Task<bool> PostAsync(string name, string address);

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.Remoting.Contexts;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Example.Repository
             }
         }
 
-        public async Task<List<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering)
+        public async Task<PagedList<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering)
         {
             List<PhoneStore> phoneStores = new List<PhoneStore>();
             try
@@ -49,10 +50,47 @@ namespace Example.Repository
                 using (connection)
                 {
                     await connection.OpenAsync();
-                    string query = "SELECT * FROM PhoneStore";
-                    using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+                    NpgsqlCommand command = new NpgsqlCommand();
+                    StringBuilder queryBuilder = new StringBuilder();
+                    queryBuilder.Append("SELECT * FROM PhoneStore");
+                    if(filtering!= null)
+                    {
+                        queryBuilder.Append(" WHERE 1=1");
+                        if (filtering.FirstLetter != null)
+                        {
+                            queryBuilder.Append(" and Name LIKE @firstLetter%");
+                            command.Parameters.AddWithValue("@firstLetter", filtering.FirstLetter);
+                        }
+                        if (filtering.FilterAddress != null)
+                        {
+                            queryBuilder.Append(" and Address like @filterAddress");
+                            command.Parameters.AddWithValue("@filterAddress", filtering.FilterAddress);
+                        }
+                        if(filtering.FilterString!= null)
+                        {
+                            queryBuilder.Append(" and Name like @filterString%");
+                            command.Parameters.AddWithValue("@filterString", filtering.FilterString);
+                        }
+                    }
+                    if(sorting.SortBy != null) 
+                    {
+                        queryBuilder.Append(" ORDER BY @sortBy @sortOrder");
+                        command.Parameters.AddWithValue("@sortBy",sorting.SortBy);
+                        command.Parameters.AddWithValue("@sortOrder",sorting.SortOrder);
+                        if(paging!=null)
+                        {
+                            queryBuilder.Append(" OFFSET @offset LIMIT @pagingSize");
+                            command.Parameters.AddWithValue("@offset", (paging.PageNumber - 1) * paging.PageSize);
+                            command.Parameters.AddWithValue("@pageSize",paging.PageSize);
+                        }
+                    }
+                    queryBuilder.Append(";");
+                    command.Connection = connection;
+                    command.CommandText= queryBuilder.ToString();
+                    using (command)
                     {
                         NpgsqlDataReader reader = await command.ExecuteReaderAsync();
+                        
                         if (reader.HasRows)
                         {
                             while (await reader.ReadAsync())
@@ -61,19 +99,18 @@ namespace Example.Repository
                                 phoneStore.Id = (Guid)reader["Id"];
                                 phoneStore.Name = (string)reader["Name"];
                                 phoneStore.Address = (string)reader["Address"];
-                                phoneStores.Add(phoneStore);
+                                phoneStores.Add(phoneStore);                               
+
                             }
                         }
                     }
                     await connection.CloseAsync();
-
-
-                    return phoneStores;
+                    return new PagedList<PhoneStore>(phoneStores,phoneStores.Count,paging.PageNumber,paging.pageSize);
                 }
             }
             catch (Exception)
             {
-                return phoneStores;
+                return null;
             }
         }
 

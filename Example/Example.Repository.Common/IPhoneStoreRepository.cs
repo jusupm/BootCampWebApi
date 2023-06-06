@@ -10,7 +10,7 @@ namespace Example.Repository.Common
 {
     public interface IPhoneStoreRepository
     {
-        Task<List<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering);
+        Task<PagedList<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering);
         Task<PhoneStore> GetAsync(Guid id);
         Task<bool> PostAsync(PhoneStore store);
         Task<bool> PostAsync(string name, string address);
