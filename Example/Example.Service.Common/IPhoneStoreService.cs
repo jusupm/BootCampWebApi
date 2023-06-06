@@ -1,4 +1,5 @@
-﻿using Example.Model;
+﻿using Example.Common;
+using Example.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,11 @@ namespace Example.Service.Common
 {
     public interface IPhoneStoreService
     {
-        List<PhoneStore> Get();
-        PhoneStore Get(Guid id);
-        bool Post(PhoneStore store);
-        bool Post(string name, string address);
-        bool Put(Guid id, PhoneStore store);
-        bool Delete(Guid id);
+        Task<PagedList<PhoneStore>> GetAsync(Paging paging, Sorting sorting, Filtering filtering);
+        Task<PhoneStore> GetAsync(Guid id);
+        Task<bool> PostAsync(PhoneStore store);
+        Task<bool> PostAsync(string name, string address);
+        Task<bool> PutAsync(Guid id, PhoneStore store);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

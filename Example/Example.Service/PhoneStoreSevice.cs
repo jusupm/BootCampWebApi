@@ -1,5 +1,6 @@
-﻿using Example.Model;
-using Example.Repository;
+﻿using Example.Common;
+using Example.Model;
+using Example.Repository.Common;
 using Example.Service.Common;
 using System;
 using System.Collections.Generic;
@@ -11,35 +12,40 @@ namespace Example.Service
 {
     public class PhoneStoreService : IPhoneStoreService
     {
-        PhoneStoreRepository repository = new PhoneStoreRepository();
-        public bool Delete(Guid id)
+        private IPhoneStoreRepository Repository { get; }
+        public PhoneStoreService(IPhoneStoreRepository repository)
         {
-            return repository.Delete(id);
+            Repository = repository;
         }
 
-        public List<PhoneStore> Get()
+        public async Task<bool> DeleteAsync(Guid id)
         {
-            return repository.Get();
+            return await Repository.DeleteAsync(id);
+        }
+        
+        public async Task<PagedList<PhoneStore>> GetAsync(Paging paging, Sorting sorting,Filtering filtering)
+        {
+            return await Repository.GetAsync(paging,sorting,filtering);
         }
 
-        public PhoneStore Get(Guid id)
+        public async Task<PhoneStore> GetAsync(Guid id)
         {
-            return repository.Get(id);
+            return await Repository.GetAsync(id);
         }
 
-        public bool Post(PhoneStore store)
+        public async Task<bool> PostAsync(PhoneStore store)
         {
-            return repository.Post(store);
+            return await Repository.PostAsync(store);
         }
 
-        public bool Post(string name, string address)
+        public async Task<bool> PostAsync(string name, string address)
         {
-            return repository.Post(name,address);
+            return await Repository.PostAsync(name,address);
         }
 
-        public bool Put(Guid id, PhoneStore store)
+        public async Task<bool> PutAsync(Guid id, PhoneStore store)
         {
-            return repository.Put(id,store);
+            return await Repository.PutAsync(id,store);
         }
     }
 }
