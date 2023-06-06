@@ -10,48 +10,38 @@ using System.Text;
 using System.Web.Http;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using Microsoft.Graph;
+using Example.Common;
+using System.Web.UI.WebControls;
+using Example.Service.Common;
 
 namespace Example.WebApp.Controllers
 {
     public class PhoneStoreController : ApiController
     {
-        PhoneStoreService service= new PhoneStoreService();
-        private PhoneStoreRest PhoneStoreToRest(PhoneStore store)
+        private IPhoneStoreService Service { get; }
+        public PhoneStoreController(IPhoneStoreService service)
         {
-            PhoneStoreRest rest= new PhoneStoreRest();
-            rest.Id = store.Id;
-            rest.Name = store.Name;
-            rest.Address = store.Address;
-            return rest;
+            Service = service;
         }
+        RestConverter converter = new RestConverter();
 
-        private PhoneStore RestToPhoneStore(PhoneStoreRest rest)
-        {
-            PhoneStore store = new PhoneStore();
-            store.Id= rest.Id;
-            store.Name = rest.Name;
-            store.Address = rest.Address;
-            return store;
-        }
-
-        private PhoneStore RestToPhoneStore(string name, string address)
-        {
-            PhoneStore store = new PhoneStore();
-            store.Name = name;
-            store.Address = address;
-            return store;
-        }
-
-        public async Task<HttpResponseMessage> GetAsync()   
+        public async Task<HttpResponseMessage> GetAsync(int pageSize= 10, int pageNumber=1,string sortBy = "name",string sortOrder = "asc", string filterString = null, string filterAddress = null, char? firstLetter= null)   
         {
             try
             {
-                List<PhoneStore> phoneStores = new List<PhoneStore>();
-                List<PhoneStoreRest> rests= new List<PhoneStoreRest>();
-                phoneStores = await service.GetAsync();
+                PagedList<PhoneStore> phoneStores = new PagedList<PhoneStore>();
+                PagedList<PhoneStoreRest> rests= new PagedList<PhoneStoreRest>();
+                
+                Paging paging = new Paging(pageSize,pageNumber);
+                Sorting sorting = new Sorting(sortBy, sortOrder);
+                Filtering filtering = new Filtering(filterString,firstLetter, filterAddress);
+
+                phoneStores = await Service.GetAsync(paging, sorting, filtering);
+                
                 foreach(PhoneStore phoneStore in phoneStores)
                 {
-                    rests.Add(PhoneStoreToRest(phoneStore));
+                    rests.Add(converter.PhoneStoreToRest(phoneStore));
                 }
                 return Request.CreateResponse(HttpStatusCode.OK,rests);
             }
@@ -59,15 +49,14 @@ namespace Example.WebApp.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, ex);
             }
-            
-        }
+         }
 
         // GET api/phone/5
         public async Task<HttpResponseMessage> GetAsync(Guid id)
         {
             try
             {
-                PhoneStoreRest rest = PhoneStoreToRest(await service.GetAsync(id));
+                PhoneStoreRest rest = converter.PhoneStoreToRest(await Service.GetAsync(id));
                 return Request.CreateResponse(HttpStatusCode.OK, rest);
             }
             catch (Exception ex)
@@ -86,7 +75,7 @@ namespace Example.WebApp.Controllers
             }
             try
             {
-                if (await service.PostAsync(RestToPhoneStore(rest)))
+                if (await Service.PostAsync(converter.RestToPhoneStore(rest)))
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.OK, "Added a phone");
                 }
@@ -104,10 +93,9 @@ namespace Example.WebApp.Controllers
 
         public async Task<HttpResponseMessage> PostAsync(string name, string address)
         {
-            Guid id = Guid.NewGuid();
             try
             {
-                if (await service.PostAsync(RestToPhoneStore(name, address)))
+                if (await Service.PostAsync(converter.RestToPhoneStore(name, address)))
                 {
                     return Request.CreateResponse(HttpStatusCode.Created, "A new phone added");
                 }
@@ -125,14 +113,14 @@ namespace Example.WebApp.Controllers
 
         // PUT api/phone/5
         public async Task<HttpResponseMessage> PutAsync(Guid id, [FromBody] PhoneStoreRest phoneStore)
-        {            
+        {
             if (!ModelState.IsValid)
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid input");
             }
             try
             {
-                if (await service.PutAsync(id, RestToPhoneStore(phoneStore)))
+                if (await Service.PutAsync(id, converter.RestToPhoneStore(phoneStore)))
                 {
                     return Request.CreateResponse(HttpStatusCode.OK, "Store updated");
                 }
@@ -154,7 +142,7 @@ namespace Example.WebApp.Controllers
         {
             try
             {
-                if (await service.DeleteAsync(id))
+                if (await Service.DeleteAsync(id))
                 {
                     return Request.CreateResponse(HttpStatusCode.Gone, "Succesfully deleted.");
                 }
@@ -168,6 +156,36 @@ namespace Example.WebApp.Controllers
                 return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
             }
 
+        }
+    }
+
+
+    public class RestConverter
+    {
+        public PhoneStoreRest PhoneStoreToRest(PhoneStore store)
+        {
+            PhoneStoreRest rest = new PhoneStoreRest();
+            rest.Id = store.Id;
+            rest.Name = store.Name;
+            rest.Address = store.Address;
+            return rest;
+        }
+
+        public PhoneStore RestToPhoneStore(PhoneStoreRest rest)
+        {
+            PhoneStore store = new PhoneStore();
+            store.Id = rest.Id;
+            store.Name = rest.Name;
+            store.Address = rest.Address;
+            return store;
+        }
+
+        public PhoneStore RestToPhoneStore(string name, string address)
+        {
+            PhoneStore store = new PhoneStore();
+            store.Name = name;
+            store.Address = address;
+            return store;
         }
     }
 }

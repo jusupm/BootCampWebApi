@@ -1,5 +1,6 @@
-﻿using Example.Model;
-using Example.Repository;
+﻿using Example.Common;
+using Example.Model;
+using Example.Repository.Common;
 using Example.Service.Common;
 using System;
 using System.Collections.Generic;
@@ -11,35 +12,40 @@ namespace Example.Service
 {
     public class PhoneStoreService : IPhoneStoreService
     {
-        PhoneStoreRepository repository = new PhoneStoreRepository();
+        private IPhoneStoreRepository Repository { get; }
+        public PhoneStoreService(IPhoneStoreRepository repository)
+        {
+            Repository = repository;
+        }
+
         public async Task<bool> DeleteAsync(Guid id)
         {
-            return await repository.DeleteAsync(id);
+            return await Repository.DeleteAsync(id);
         }
         
-        public async Task<List<PhoneStore>> GetAsync()
+        public async Task<PagedList<PhoneStore>> GetAsync(Paging paging, Sorting sorting,Filtering filtering)
         {
-            return await repository.GetAsync();
+            return await Repository.GetAsync(paging,sorting,filtering);
         }
 
         public async Task<PhoneStore> GetAsync(Guid id)
         {
-            return await repository.GetAsync(id);
+            return await Repository.GetAsync(id);
         }
 
         public async Task<bool> PostAsync(PhoneStore store)
         {
-            return await repository.PostAsync(store);
+            return await Repository.PostAsync(store);
         }
 
         public async Task<bool> PostAsync(string name, string address)
         {
-            return await repository.PostAsync(name,address);
+            return await Repository.PostAsync(name,address);
         }
 
         public async Task<bool> PutAsync(Guid id, PhoneStore store)
         {
-            return await repository.PutAsync(id,store);
+            return await Repository.PutAsync(id,store);
         }
     }
 }
