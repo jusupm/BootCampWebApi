@@ -1,0 +1,83 @@
+body {
+    font-family: Arial, sans-serif;
+  }
+  
+  h2 {
+    text-align: center;
+  }
+  
+  form {
+    width: 300px;
+    margin: 10px auto;    
+    background-color: #bbbcc6;
+    border-radius: 14px;
+  }
+  
+  label, input {
+    display: block;
+    margin-left: 10px;
+    font-size: medium;
+    font-weight: 600;
+  }
+  input{    
+    background-color: #f2f2f2;
+  }
+  
+  button {
+    margin-top: 10px;
+    margin-left:90px;
+    background-color: #f2f2f2;
+  }
+  
+  table {
+    border-collapse: collapse;
+    margin-top: 20px;
+    width: 100%;
+  }
+  
+  table th, table td {    
+    border: 1px solid #ddd;
+    padding: 4px;
+    text-align: left;
+    width: 26%;
+  }
+  
+  table th {
+    background-color: #f2f2f2;
+  }
+
+
+  .delete-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    width: 110px;
+  }
+
+  .update-button {
+    background-color: #54a3df;
+    color: white;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    width: 110px;
+  }
+  
+  .delete-button:hover {
+    background-color: #d32f2f;
+  }
+  .update-button:hover {
+    background-color: #5019dc;
+  }
+  
+  button[type="submit"] {
+    margin-top: 20px; 
+    padding: 12px 30px; 
+    font-size: 16px;
+  }
+
+  button[type="submit"]:hover {
+    background-color: #7c7b82;
+  }
